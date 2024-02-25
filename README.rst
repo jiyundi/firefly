@@ -9,7 +9,7 @@ To run, use your bash terminal and type:
 
 Here, ``input_spec1d/`` is the folder that you want FIREFLY to fit for redshifts, ``-all`` means you'd like to fit all files in your specified folder, ``vvds_spiral`` is the template that FIREFLY will use during the fitting.
 
-To redo fitting for one spectrum, e.g., ``spec1d.m46.030.A2552.fits``, (and with your desired redshift, for example, z=0.6724), use 
+To redo fitting for one spectrum, e.g., ``spec1d.m46.030.A2552.fits``, (and with your desired redshift, for example, z=0.67), use 
 
 .. code-block:: 
 
