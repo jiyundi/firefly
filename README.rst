@@ -1,9 +1,8 @@
 **Fast Initial REdshift Fitting of cLuster galaxY (FIREFLY)**
+###########
 
 .. image:: img/readme_example.jpg
-   :width: 600
-
-###########
+   :width: 1000
 
 To run, use your bash terminal and type:
 
