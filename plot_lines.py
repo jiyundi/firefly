@@ -13,7 +13,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "[O II]", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  "[O II]", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
         if key == '[OIII]':
@@ -28,8 +28,8 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "[O III]", size=12, zorder=9.1, 
-                         horizontalalignment='left', verticalalignment='bottom', 
+                ax0.text(wave+10,  ymin1,  "[O III]", size=10, zorder=9.1, 
+                         horizontalalignment='center', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
         if key == '[SII]':
             PlotOrNot = False
@@ -43,7 +43,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "[S II]", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  "[S II]", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
         if key == '[SIII]':
@@ -58,7 +58,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "[S III]", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  "[S III]", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
         if key == 'Ha':
@@ -73,7 +73,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  r"H$\alpha$", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  r"H$\alpha$", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
         if key == 'Hb':
@@ -88,7 +88,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  r"H$\beta$", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  r"H$\beta$", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
         if key == 'Hg':
@@ -103,7 +103,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  r"H$\gamma$", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  r"H$\gamma$", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
         if key == 'NII':
@@ -118,7 +118,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='blue', 
                            alpha=alpha_emi, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "N II", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  "N II", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='blue', alpha=alpha_emi)
     for key, values in dic_abs_lines.items():
@@ -134,7 +134,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='orange', 
                            alpha=alpha_abs, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "Ca H&K", size=12, zorder=9.1, 
+                ax0.text(wave,  ymin1,  "Ca H&K", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='orange', alpha=alpha_abs)
         if key == 'G-band':
@@ -149,7 +149,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='orange', 
                            alpha=alpha_abs, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave-10,  ymin1,  "G-band", size=12, zorder=9.1, 
+                ax0.text(wave-10,  ymin1,  "G-band", size=9, zorder=9.1, 
                          horizontalalignment='right', verticalalignment='bottom', 
                          color='orange', alpha=alpha_abs)
         if key == 'MgI':
@@ -164,7 +164,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='orange', 
                            alpha=alpha_abs, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "Mg I", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  "Mg I", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='orange', alpha=alpha_abs)
         if key == 'Na':
@@ -179,6 +179,7 @@ def plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax0,
                            ls='--',  zorder=8, color='orange', 
                            alpha=alpha_abs, linewidth=1)
             if PlotOrNot:
-                ax0.text(wave+10,  ymin1,  "Na", size=12, zorder=9.1, 
+                ax0.text(wave+10,  ymin1,  "Na", size=10, zorder=9.1, 
                          horizontalalignment='left', verticalalignment='bottom', 
                          color='orange', alpha=alpha_abs)
+    return
