@@ -2,7 +2,7 @@
 ###########
 
 .. image:: img/readme_example.jpg
-   :width: 1000
+   :width: 900
 
 To run, use your bash terminal and type:
 
