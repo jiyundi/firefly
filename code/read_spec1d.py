@@ -1,6 +1,6 @@
 from astropy.io import fits
 from astropy    import units as u
-from binning_1d import binning_1d
+from code.binning_1d import binning_1d
 
 def read_spec1d(spec1dfilepath):
     # **observed** spectrum from Keck/DEIMOS

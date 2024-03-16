@@ -4,12 +4,12 @@ import sys
 import os
 import matplotlib.pyplot as plt
 
-from read_spec1d        import read_spec1d
-from plots_spec_z_combo import plots_spec_z_combo
-from fitting            import cross_corr
+from code.read_spec1d        import read_spec1d
+from code.plots_spec_z_combo import plots_spec_z_combo
+from code.fitting            import cross_corr
 
-from load_templates     import read_templates
-from load_lines         import read_lines
+from code.load_templates     import read_templates
+from code.load_lines         import read_lines
 global dic_templates, dic_emi_lines, dic_abs_lines
 dic_templates                = read_templates()
 dic_emi_lines, dic_abs_lines = read_lines()
