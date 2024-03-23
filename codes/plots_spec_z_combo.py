@@ -1,6 +1,6 @@
 import numpy as np
-from code.plot_lines     import plot_lines
-from code.plot_blocks    import plot_blocks, plot_nega_flux, plot_nega_flux_rela
+from codes.plot_lines     import plot_lines
+from codes.plot_blocks    import plot_blocks, plot_nega_flux, plot_nega_flux_rela
 
 def plots_spec_z_combo(ax1, ax2, ax3, ax4,
                        dic_abs_lines, dic_emi_lines,

@@ -4,12 +4,12 @@ import sys
 import os
 import matplotlib.pyplot as plt
 
-from code.read_spec1d        import read_spec1d
-from code.plots_spec_z_combo import plots_spec_z_combo
-from code.fitting            import cross_corr
+from codes.read_spec1d        import read_spec1d
+from codes.plots_spec_z_combo import plots_spec_z_combo
+from codes.fitting            import cross_corr
 
-from code.load_templates     import read_templates
-from code.load_lines         import read_lines
+from codes.load_templates     import read_templates
+from codes.load_lines         import read_lines
 global dic_templates, dic_emi_lines, dic_abs_lines
 dic_templates                = read_templates()
 dic_emi_lines, dic_abs_lines = read_lines()
@@ -66,9 +66,9 @@ else: # No input arguments
     spec1dfilepath   = spec1dfolderpath + spec1dobjname
     input_spec_list  = [spec1dfilepath]
     templatename1    = 'vvds_spiral'
-    templatename2    = 'vvds_elliptical'
+    templatename2    = 'sdss_late_type'
     z_guess1         = 0.3968
-    z_guess2         = 0.8590
+    z_guess2         = 0.2000
     print('No input arguments detected. Begin with default:', spec1dfilepath)
     
 os.makedirs('redshifts_JPGs', exist_ok=True)
@@ -77,12 +77,13 @@ os.makedirs('redshifts_JPGs', exist_ok=True)
 # FOR EVERY SPEC1D OBJECT...
 def main_func(input_spec_list, spec1dfolderpath, 
               templatename1, templatename2, z_guess1, z_guess2):
+    binfactor = 10
     
     for spec1dfilepath in input_spec_list:
         spec1dobjname = spec1dfilepath[len(spec1dfolderpath):]
         
         # **observed** spectrum
-        arr_obs_wave, arr_obs_flux, arr_obs_erro = read_spec1d(spec1dfilepath)
+        arr_obs_wave, arr_obs_flux, arr_obs_erro = read_spec1d(spec1dfilepath, binfactor)
         
         arr_obs_flux_raw = arr_obs_flux.copy()
         arr_obs_wave_raw = arr_obs_wave.copy()
@@ -110,11 +111,17 @@ def main_func(input_spec_list, spec1dfolderpath,
         # **template** spectrum (tem_spec)
         arr_tem1wave = dic_templates[templatename1][0] * u.AA
         arr_tem1flux = dic_templates[templatename1][1] * u.dimensionless_unscaled
-        arr_tem1erro = 0.2e-19 * np.ones(len(arr_tem1flux)) * u.dimensionless_unscaled
+        if len(dic_templates[templatename1]) <= 2:
+            arr_tem1erro = 0.2e-19 * np.ones(len(arr_tem1flux)) * u.dimensionless_unscaled
+        else:
+            arr_tem1erro = dic_templates[templatename1][2] * u.dimensionless_unscaled
         
         arr_tem2wave = dic_templates[templatename2][0] * u.AA
         arr_tem2flux = dic_templates[templatename2][1] * u.dimensionless_unscaled
-        arr_tem2erro = 0.2e-19 * np.ones(len(arr_tem2flux)) * u.dimensionless_unscaled
+        if len(dic_templates[templatename2]) <= 2:
+            arr_tem2erro = 0.2e-19 * np.ones(len(arr_tem2flux)) * u.dimensionless_unscaled
+        else:
+            arr_tem2erro = dic_templates[templatename2][2] * u.dimensionless_unscaled
         
         # FLUX-CONTINUUM NORMALIZATION AND SUBSTRACTION
         result_dic = cross_corr(arr_obs_wave, arr_obs_flux, arr_obs_erro,

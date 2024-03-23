@@ -46,6 +46,30 @@ def read_templates():
         infile.close()
         return arr_template
     
+    def read_sdss_template(temfilename):
+        hdulist=fits.open(temfilename)
+        # print('Opened...'+temfilename)
+        
+        # Primary header keywords
+        hdr00kwds = hdulist[0].header
+        hdr00data = hdulist[0].data
+        
+        # Calculate wavelength array
+        logwavemin = hdr00kwds['CRVAL1']
+        Nmaxpixel  = hdr00kwds['NAXIS1']
+        log10disp  = hdr00kwds['CD1_1']
+        
+        logwave       = logwavemin + log10disp * np.arange(Nmaxpixel)
+        
+        wave_angstrom = 10**logwave
+        flux_ergscm2A = hdr00data[0] * 1e-17
+        erro_ergscm2A = hdr00data[2] * 1e-17
+        arr_template  = np.concatenate(([wave_angstrom],
+                                        [flux_ergscm2A],
+                                        [erro_ergscm2A]),
+                                        axis=0)
+        return arr_template
+    
     dic_templates = {}
     
     temname1      = 'vvds_lbg'
@@ -142,6 +166,36 @@ def read_templates():
     temfilename19  = 'templates/ukm6v.dat'
     arr_template19 = read_dat_template(temfilename19)
     dic_templates[temname19] = arr_template19
+    
+    temname20      = 'sdss_early_type'
+    temfilename20  = 'templates/sdss_early_type.fits'
+    arr_template20 = read_sdss_template(temfilename20)
+    dic_templates[temname20] = arr_template20
+    
+    temname21      = 'sdss_emi_high'
+    temfilename21  = 'templates/sdss_emi_high.fits'
+    arr_template21 = read_sdss_template(temfilename21)
+    dic_templates[temname21] = arr_template21
+    
+    temname22      = 'sdss_emi_low'
+    temfilename22  = 'templates/sdss_emi_low.fits'
+    arr_template22 = read_sdss_template(temfilename22)
+    dic_templates[temname22] = arr_template22
+    
+    temname23      = 'sdss_emi_mid'
+    temfilename23  = 'templates/sdss_emi_mid.fits'
+    arr_template23 = read_sdss_template(temfilename23)
+    dic_templates[temname23] = arr_template23
+    
+    temname24      = 'sdss_late_type'
+    temfilename24  = 'templates/sdss_late_type.fits'
+    arr_template24 = read_sdss_template(temfilename24)
+    dic_templates[temname24] = arr_template24
+    
+    temname25      = 'sdss_luminous_red'
+    temfilename25  = 'templates/sdss_luminous_red.fits'
+    arr_template25 = read_sdss_template(temfilename25)
+    dic_templates[temname25] = arr_template25
     
     return dic_templates
 
