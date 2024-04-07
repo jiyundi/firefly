@@ -5,8 +5,11 @@ import os
 import matplotlib.pyplot as plt
 
 from codes.read_spec1d        import read_spec1d
+from codes.read_spec2d        import read_spec2d
 from codes.plots_spec_z_combo import plots_spec_z_combo
 from codes.fitting            import cross_corr
+from codes.binning_1d         import binning_1d
+from codes.find_sus_O_II_line import find_sus_O_II_line
 
 from codes.load_templates     import read_templates
 from codes.load_lines         import read_lines
@@ -18,21 +21,43 @@ print('Template and lines loading complete.')
 z_guess1 = None
 z_guess2 = None
 
+binfactor_spec = 30
+binfactor_temp = 5
+
 # Turn off: ``RuntimeWarning: invalid value encountered in divide.''
 np.seterr(divide='ignore', invalid='ignore')
 
 # USER INPUTS...
+# $ firefly.py input_spec1d/ input_spec2d/ -all                vvds_spiral vvds_elliptical
+# $ firefly.py input_spec1d/ input_spec2d/ spec1d.m.030.A.fits vvds_spiral vvds_elliptical 0.68 0.67
 inputlist = sys.argv
 
 if len(inputlist) > 1:
     spec1dfolderpath = inputlist[1]
-    spec1dobjnames   = inputlist[2]
-    templatename1    = inputlist[3]
-    templatename2    = inputlist[4]
+    spec2dfolderpath = inputlist[2]
+    spec1dobjnames   = inputlist[3]
+    templatename1    = inputlist[4]
+    templatename2    = inputlist[5]
     # check illegal inputs
     if spec1dfolderpath[-1] != '/':
         spec1dfolderpath += '/'
         print('Spec1d Folder:   ', spec1dfolderpath, 'is specified.')
+    if spec2dfolderpath[-1] != '/':
+        spec2dfolderpath += '/'
+        print('Spec2d Folder:   ', spec2dfolderpath, 'is specified.')
+    #
+    if spec1dobjnames == '-all':
+        input_spec1d_lst = []
+        short_list      = os.listdir(spec1dfolderpath)
+        for f in short_list: input_spec1d_lst += [spec1dfolderpath + f]
+        print('File selected:   ', len(input_spec1d_lst), 'files in this spec1d folder.')
+    else:
+        input_spec1d_lst = [spec1dfolderpath + spec1dobjnames]
+        z_guess1 = float(inputlist[5])
+        z_guess2 = float(inputlist[6])
+        print('File selected:   ', input_spec1d_lst, '(only 1 file).',
+              'You set z='+"{:.4f} {:.4f}".format(z_guess1,z_guess2),'for this object')
+    #
     try:
         dic_templates[templatename1]
         print('Template 1:      ', templatename1, 'is selected.')
@@ -41,6 +66,7 @@ if len(inputlist) > 1:
         print('[Error] Template:', templatename1, 'does not exist.',
               'Available templates: ', list(dic_templates.keys()),
               'Switched to default template: "VVDS Spiral".')   
+    #
     try:
         dic_templates[templatename2]
         print('Template 2:      ', templatename2, 'is selected.')
@@ -49,41 +75,47 @@ if len(inputlist) > 1:
         print('[Error] Template:', templatename2, 'does not exist.',
               'Available templates: ', list(dic_templates.keys()),
               'Switched to default template: "VVDS Elliptical".')
-    if spec1dobjnames == '-all':
-        input_spec_list = []
-        short_list      = os.listdir(spec1dfolderpath)
-        for f in short_list: input_spec_list += [spec1dfolderpath + f]
-        print('File selected:   ', len(input_spec_list), 'files in this spec1d folder.')
-    else:
-        input_spec_list = [spec1dfolderpath + spec1dobjnames]
-        z_guess1 = float(inputlist[5])
-        z_guess2 = float(inputlist[6])
-        print('File selected:   ', input_spec_list, '(only 1 file).',
-              'You set z='+"{:.4f} {:.4f}".format(z_guess1,z_guess2),'for this object')
 else: # No input arguments
-    spec1dfolderpath = 'input_spec1d/'
-    spec1dobjname    = 'spec1d.m46.077.A2552.fits'
-    spec1dfilepath   = spec1dfolderpath + spec1dobjname
-    input_spec_list  = [spec1dfilepath]
-    templatename1    = 'vvds_spiral'
+    spec1dfolderpath = 'input_spec1d_TEST/'
+    input_spec1d_lst = []
+    short_list       = os.listdir(spec1dfolderpath)
+    for f in short_list: input_spec1d_lst += [spec1dfolderpath + f]
+    spec2dfolderpath = 'input_spec2d_TEST/'
+    # spec2dobjname    = 'spec2d.m46.077.A2552.fits'
+    # spec2dfilepath   = spec2dfolderpath + spec2dobjname
+    # input_spec2d_lst = [spec2dfilepath]
+    templatename1    = 'sdss_luminous_red'
     templatename2    = 'sdss_late_type'
-    z_guess1         = 0.3968
-    z_guess2         = 0.2000
-    print('No input arguments detected. Begin with default:', spec1dfilepath)
+    z_guess1         = None
+    z_guess2         = None
     
 os.makedirs('redshifts_JPGs', exist_ok=True)
 
 
 # FOR EVERY SPEC1D OBJECT...
-def main_func(input_spec_list, spec1dfolderpath, 
-              templatename1, templatename2, z_guess1, z_guess2):
-    binfactor = 10
+def main_func(input_spec1d_lst, spec1dfolderpath, spec2dfolderpath,
+              templatename1, templatename2, z_guess1, z_guess2,
+              binfactor_spec, binfactor_temp):
     
-    for spec1dfilepath in input_spec_list:
+    for spec1dfilepath in input_spec1d_lst:
         spec1dobjname = spec1dfilepath[len(spec1dfolderpath):]
+        input_spec2d_lst = []
+        short_list       = os.listdir(spec2dfolderpath)
+        for f in short_list: input_spec2d_lst += [spec2dfolderpath + f]
+        try: # slit number in spec2d list
+            slitnumber = spec1dobjname.split('.')[2]
+            for spec2dfilepath in input_spec2d_lst:
+                spec2dobjname = spec2dfilepath[len(spec2dfolderpath):]
+                if spec2dobjname.split('.')[2] == slitnumber:
+                    break
+        except:
+            print('Spec-2d not found. Check if any filename does not have typos.')
         
-        # **observed** spectrum
-        arr_obs_wave, arr_obs_flux, arr_obs_erro = read_spec1d(spec1dfilepath, binfactor)
+        # 2d spectrum
+        farr,vmin,vmax,warr = read_spec2d(spec2dfilepath)
+        
+        # **observed** spectrum --------------------------------------------------------------
+        arr_obs_wave, arr_obs_flux, arr_obs_erro = read_spec1d(spec1dfilepath, binfactor_spec)
         
         arr_obs_flux_raw = arr_obs_flux.copy()
         arr_obs_wave_raw = arr_obs_wave.copy()
@@ -95,10 +127,10 @@ def main_func(input_spec_list, spec1dfolderpath,
         mask_positive_flux = arr_obs_flux > 0
         mask_left_edge     = arr_obs_wave > (wave_min + 0.03*wave_range)
         mask_right_edge    = arr_obs_wave < (wave_min + 0.97*wave_range)
-        mask_atm_absorp_Al = arr_obs_wave.value < 7586
-        mask_atm_absorp_Ar = arr_obs_wave.value > 7708
-        mask_atm_absorp_Bl = arr_obs_wave.value < 6864
-        mask_atm_absorp_Br = arr_obs_wave.value > 6945
+        mask_atm_absorp_Al = arr_obs_wave < 7586
+        mask_atm_absorp_Ar = arr_obs_wave > 7708
+        mask_atm_absorp_Bl = arr_obs_wave < 6864
+        mask_atm_absorp_Br = arr_obs_wave > 6945
         mask_all_1 = mask_positive_flux & mask_left_edge & mask_right_edge
         mask_all_2 = mask_atm_absorp_Al | mask_atm_absorp_Ar
         mask_all_3 = mask_atm_absorp_Bl | mask_atm_absorp_Br
@@ -108,93 +140,127 @@ def main_func(input_spec_list, spec1dfolderpath,
         arr_obs_wave = arr_obs_wave[mask_all]
         arr_obs_erro = arr_obs_erro[mask_all]
         
-        # **template** spectrum (tem_spec)
-        arr_tem1wave = dic_templates[templatename1][0] * u.AA
-        arr_tem1flux = dic_templates[templatename1][1] * u.dimensionless_unscaled
+        arr_obs = np.concatenate(([arr_obs_wave],
+                                  [arr_obs_flux],
+                                  [arr_obs_erro]), axis=0)
+        
+        # **template** spectrum (tem_spec) ----------------------------------------------------------------------------
+        # No.1
+        arr_tem1wave = binning_1d(dic_templates[templatename1][0], binfactor_temp)
+        arr_tem1flux = binning_1d(dic_templates[templatename1][1], binfactor_temp)
         if len(dic_templates[templatename1]) <= 2:
-            arr_tem1erro = 0.2e-19 * np.ones(len(arr_tem1flux)) * u.dimensionless_unscaled
+            arr_tem1erro = binning_1d(0.2e-19 * np.ones(len(arr_tem1flux)), binfactor_temp)
         else:
-            arr_tem1erro = dic_templates[templatename1][2] * u.dimensionless_unscaled
-        
-        arr_tem2wave = dic_templates[templatename2][0] * u.AA
-        arr_tem2flux = dic_templates[templatename2][1] * u.dimensionless_unscaled
+            arr_tem1erro = binning_1d(dic_templates[templatename1][2], binfactor_temp)
+        arr_tem1 = np.concatenate(([arr_tem1wave],
+                                   [arr_tem1flux],
+                                   [arr_tem1erro]), axis=0)
+        # No.2
+        arr_tem2wave = binning_1d(dic_templates[templatename2][0], binfactor_temp)
+        arr_tem2flux = binning_1d(dic_templates[templatename2][1], binfactor_temp)
         if len(dic_templates[templatename2]) <= 2:
-            arr_tem2erro = 0.2e-19 * np.ones(len(arr_tem2flux)) * u.dimensionless_unscaled
+            arr_tem2erro = binning_1d(0.2e-19 * np.ones(len(arr_tem2flux)), binfactor_temp)
         else:
-            arr_tem2erro = dic_templates[templatename2][2] * u.dimensionless_unscaled
+            arr_tem2erro = binning_1d(dic_templates[templatename2][2], binfactor_temp)
+        arr_tem2 = np.concatenate(([arr_tem2wave],
+                                   [arr_tem2flux],
+                                   [arr_tem2erro]), axis=0)
         
-        # FLUX-CONTINUUM NORMALIZATION AND SUBSTRACTION
-        result_dic = cross_corr(arr_obs_wave, arr_obs_flux, arr_obs_erro,
-                                arr_tem1wave, arr_tem1flux, arr_tem1erro,
-                                z_guess1)
-        z_guess1              = result_dic['z_guess']
-        z_peak1               = result_dic['z_peak']
-        lag1                  = result_dic['lag']
-        corr_normalized1      = result_dic['corr_normalized']
-        arr_obs_rela_flux     = result_dic['arr_obs_rela_flux']
-        arr_obs_cont_wave     = result_dic['arr_obs_cont_wave']
-        arr_obs_cont_flux     = result_dic['arr_obs_cont_flux']
-        arr_tem1rela_flux     = result_dic['arr_tem_rela_flux']
-        arr_tem1wave_new      = result_dic['arr_tem_wave_new']
-        arr_tem1flux_new      = result_dic['arr_tem_flux_new']
-        arr_tem1cont_flux_new = result_dic['arr_tem_cont_flux_new']
+        # Fittings -----------------------------------------------------------------------
+        (z_peak1, z_guess1,
+        lag1, corr1_normalized, 
+        arr_obs_cont,        # Figure 1+3: 2/4 (1/4=arr_obs)
+        arr_tem1_masked,     # Figure 1+3: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+        arr_tem1cont_masked, # Figure 1+3, 4/4
+        arr_obs_rela,    # Figure 2, 1/2
+        arr_tem1rela,    # Figure 2, 2/2
+        arr_tem1_masked_newz,     # Figure 3: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+        arr_tem1cont_masked_newz, # Figure 3, 4/4
+        arr_tem1relaC             # Figure 4, 2/2
+        ) = cross_corr(arr_obs, arr_tem1, 
+                       z_guess1, dic_emi_lines)
         
-        result_dic = cross_corr(arr_obs_wave, arr_obs_flux, arr_obs_erro,
-                                arr_tem2wave, arr_tem2flux, arr_tem2erro,
-                                z_guess2)
-        z_guess2              = result_dic['z_guess']
-        z_peak2               = result_dic['z_peak']
-        lag2                  = result_dic['lag']
-        corr_normalized2      = result_dic['corr_normalized']
-        arr_obs_rela_flux     = result_dic['arr_obs_rela_flux']
-        arr_obs_cont_wave     = result_dic['arr_obs_cont_wave']
-        arr_obs_cont_flux     = result_dic['arr_obs_cont_flux']
-        arr_tem2rela_flux     = result_dic['arr_tem_rela_flux']
-        arr_tem2wave_new      = result_dic['arr_tem_wave_new']
-        arr_tem2flux_new      = result_dic['arr_tem_flux_new']
-        arr_tem2cont_flux_new = result_dic['arr_tem_cont_flux_new']
+        (z_peak2, z_guess2,
+        lag2, corr2_normalized, 
+        arr_obs_cont,        # Figure 1+3: 2/4 (1/4=arr_obs)
+        arr_tem2_masked,     # Figure 1+3: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+        arr_tem2cont_masked, # Figure 1+3, 4/4
+        arr_obs_rela,    # Figure 2, 1/2
+        arr_tem2rela,    # Figure 2, 2/2
+        arr_tem2_masked_newz,     # Figure 3: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+        arr_tem2cont_masked_newz, # Figure 3, 4/4
+        arr_tem2relaC             # Figure 4, 2/2
+        ) = cross_corr(arr_obs, arr_tem2, 
+                       z_guess2, dic_emi_lines)
         
         # All plottings
-        fig = plt.figure(figsize=(16,10),dpi=150)
-        plt.subplots_adjust(hspace=0.4, wspace=0.35) # h=height
-        gs = fig.add_gridspec(3, 4,
-                              height_ratios=[3,2,2],
+        fig = plt.figure(figsize=(22,12),dpi=100)
+        spec2dbox_ratio = (fig.get_size_inches()[0]/2 / (fig.get_size_inches()[1]/(11)))
+        plt.subplots_adjust(hspace=0.15, wspace=0.20) # h=height
+        gs = fig.add_gridspec(6, 4,
+                              height_ratios=[1,2,2,2,2,2],
                               width_ratios=[1,1,1,1])
-        ax1 = fig.add_subplot(gs[0, 0:2])
-        ax4 = fig.add_subplot(gs[1, 0:2])
-        ax2 = fig.add_subplot(gs[2, 0])
-        ax3 = fig.add_subplot(gs[2, 1])
+        ax_2dspecimg_lf = fig.add_subplot(gs[0, 0:2])
+        ax_orig_spec_lf = fig.add_subplot(gs[1, 0:2])
+        ax_rela_spec_lf = fig.add_subplot(gs[2, 0:2])
+        ax_orig_spe2_lf = fig.add_subplot(gs[3, 0:2])
+        ax_rela_spe2_lf = fig.add_subplot(gs[4, 0:2])
+        ax_corr_dist_lf = fig.add_subplot(gs[5, 0])
+        ax_peak_dist_lf = fig.add_subplot(gs[5, 1])
         
-        plots_spec_z_combo( ax1, ax2, ax3, ax4,
+        plots_spec_z_combo( ax_2dspecimg_lf,
+                            farr, vmin, vmax, warr, spec2dbox_ratio,
+                            ax_orig_spec_lf, ax_rela_spec_lf, 
+                            ax_corr_dist_lf, ax_peak_dist_lf,
+                            ax_orig_spe2_lf, ax_rela_spe2_lf,
                             dic_abs_lines, dic_emi_lines,
                             spec1dobjname, templatename1, z_peak1, z_guess1,
-                            lag1, corr_normalized1,
-                            arr_obs_wave_raw,  arr_obs_flux_raw,  arr_obs_erro_raw,
-                            arr_obs_wave,      arr_obs_rela_flux,
-                            arr_obs_cont_wave, arr_obs_cont_flux, 
-                            arr_tem1wave,      arr_tem1rela_flux,
-                            arr_tem1wave_new,  arr_tem1flux_new,  arr_tem1cont_flux_new)
+                            lag1, corr1_normalized, 
+                            arr_obs,             # Figure 1+3: 1/4=arr_obs
+                            arr_obs_cont,        # Figure 1+3: 2/4 (1/4=arr_obs)
+                            arr_tem1_masked,     # Figure 1: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+                            arr_tem1cont_masked, # Figure 1, 4/4
+                            arr_obs_rela,    # Figure 2+4, 1/2
+                            arr_tem1rela,    # Figure 2, 2/2
+                            arr_tem1_masked_newz,     # Figure 3: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+                            arr_tem1cont_masked_newz, # Figure 3, 4/4
+                            arr_tem1relaC,            # Figure 4, 2/2
+                            ['red', 'red'])
         
-        ax5 = fig.add_subplot(gs[0, 2:])
-        ax8 = fig.add_subplot(gs[1, 2:])
-        ax6 = fig.add_subplot(gs[2, 2])
-        ax7 = fig.add_subplot(gs[2, 3])
+        ax_2dspecimg_rt = fig.add_subplot(gs[0, 2:])
+        ax_orig_spec_rt = fig.add_subplot(gs[1, 2:])
+        ax_rela_spec_rt = fig.add_subplot(gs[2, 2:])
+        ax_orig_spe2_rt = fig.add_subplot(gs[3, 2:])
+        ax_rela_spe2_rt = fig.add_subplot(gs[4, 2:])
+        ax_corr_dist_rt = fig.add_subplot(gs[5, 2])
+        ax_peak_dist_rt = fig.add_subplot(gs[5, 3])
         
-        plots_spec_z_combo( ax5, ax6, ax7, ax8,
+        plots_spec_z_combo( ax_2dspecimg_rt,
+                            farr, vmin, vmax, warr, spec2dbox_ratio,
+                            ax_orig_spec_rt, ax_rela_spec_rt, 
+                            ax_corr_dist_rt, ax_peak_dist_rt,
+                            ax_orig_spe2_rt, ax_rela_spe2_rt,
                             dic_abs_lines, dic_emi_lines,
                             spec1dobjname, templatename2, z_peak2, z_guess2,
-                            lag2, corr_normalized2,
-                            arr_obs_wave_raw,  arr_obs_flux_raw,  arr_obs_erro_raw,
-                            arr_obs_wave,      arr_obs_rela_flux,
-                            arr_obs_cont_wave, arr_obs_cont_flux, 
-                            arr_tem2wave,      arr_tem2rela_flux,
-                            arr_tem2wave_new,  arr_tem2flux_new,  arr_tem2cont_flux_new)
+                            lag2, corr2_normalized, 
+                            arr_obs,             # Figure 1+3: 1/4=arr_obs
+                            arr_obs_cont,        # Figure 1+3: 2/4 (1/4=arr_obs)
+                            arr_tem2_masked,     # Figure 1: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+                            arr_tem2cont_masked, # Figure 1, 4/4
+                            arr_obs_rela,    # Figure 2+4, 1/2
+                            arr_tem2rela,    # Figure 2, 2/2
+                            arr_tem2_masked_newz,     # Figure 3: 3/4 (Can't use arr_tem1 b/c un-normalized!)
+                            arr_tem2cont_masked_newz, # Figure 3, 4/4
+                            arr_tem2relaC,            # Figure 4, 2/2
+                            ['magenta', 'magenta'])
         
-        fig.suptitle(spec1dobjname, x=0.5, y=0.93, fontsize=18, va='top')
-        ax1.set_title('Template 1: '+templatename1, 
-                      fontsize=14, loc='center')
-        ax5.set_title('Template 2: '+templatename2, 
-                      fontsize=14, loc='center')
+        
+        fig.suptitle("Slit {} ({} + {})".format(slitnumber,spec1dobjname, spec2dobjname), 
+                     x=0.5, y=0.92, fontsize=18, va='top')
+        ax_2dspecimg_lf.set_title('Template 1: '+templatename1,
+                                  fontsize=14, loc='center')
+        ax_2dspecimg_rt.set_title('Template 2: '+templatename2,
+                                  fontsize=14, loc='center')
         
         if z_guess1 != z_peak1 or z_guess2 != z_peak2:
             plt.savefig("redshifts_JPGs/"+spec1dobjname+"_adjusted_test.jpg", dpi=150, bbox_inches='tight')
@@ -207,5 +273,6 @@ def main_func(input_spec_list, spec1dfolderpath,
         
     return 
 
-main_func(input_spec_list, spec1dfolderpath, 
-          templatename1, templatename2, z_guess1, z_guess2)
+main_func(input_spec1d_lst, spec1dfolderpath, spec2dfolderpath, 
+          templatename1, templatename2, z_guess1, z_guess2,
+          binfactor_spec, binfactor_temp)
