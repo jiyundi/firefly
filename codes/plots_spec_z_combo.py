@@ -188,11 +188,10 @@ def plots_spec_z_combo(ax_2dspecimg,
                           horizontalalignment='center', verticalalignment='center', 
                           color='purple', alpha=0.15, zorder=9,
                           transform=ax_rela_spe2.transAxes)
-        
-    plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax_orig_spe2, 
-                alpha_abs, alpha_emi, xmin1, xmax_orig_spe2, ymin1, ymax_orig_spe2)
-    plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax_rela_spe2, 
-                alpha_abs, alpha_emi, xmin1, xmax_orig_spe2, ymin4, ymax_rela_spe2)
+        plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax_orig_spe2, 
+                    alpha_abs, alpha_emi, xmin1, xmax_orig_spe2, ymin1, ymax_orig_spe2)
+        plot_lines(dic_emi_lines, dic_abs_lines, z_guess, ax_rela_spe2, 
+                    alpha_abs, alpha_emi, xmin1, xmax_orig_spe2, ymin4, ymax_rela_spe2)
     
     ax_rela_spe2.set_ylabel('Relative Flux'+'\n'+' (spec / cont - 1)')
     ax_rela_spe2.minorticks_on()
