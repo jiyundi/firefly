@@ -1,5 +1,5 @@
 **Fast Initial REdshift Fitting of cLuster galaxY (FIREFLY)**
-###########
+####################################################################################
 
 .. image:: img/readme_example.jpg
    :width: 900
