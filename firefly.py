@@ -261,9 +261,9 @@ def main_func(input_spec1d_lst, spec1dfolderpath, spec2dfolderpath,
                                   fontsize=14, loc='center')
         
         if z_guess1 != z_peak1 or z_guess2 != z_peak2:
-            plt.savefig("redshifts_JPGs/"+spec1dobjname+"_adjusted_test.jpg", dpi=150, bbox_inches='tight')
+            plt.savefig(outputfolderpath+spec1dobjname+"_adjusted_test.jpg", dpi=150, bbox_inches='tight')
         else:
-            plt.savefig("redshifts_JPGs/"+spec1dobjname+".jpg", dpi=150, bbox_inches='tight')
+            plt.savefig(outputfolderpath+spec1dobjname+".jpg", dpi=150, bbox_inches='tight')
         z_guess1 = None
         z_guess2 = None
         
