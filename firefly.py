@@ -1,5 +1,4 @@
 import numpy as np
-from astropy import units as u
 import sys
 import os
 import matplotlib.pyplot as plt
@@ -9,7 +8,6 @@ from codes.read_spec2d        import read_spec2d
 from codes.plots_spec_z_combo import plots_spec_z_combo
 from codes.fitting            import cross_corr
 from codes.binning_1d         import binning_1d
-from codes.find_sus_O_II_line import find_sus_O_II_line
 
 from codes.load_templates     import read_templates
 from codes.load_lines         import read_lines
@@ -28,23 +26,27 @@ binfactor_temp = 5
 np.seterr(divide='ignore', invalid='ignore')
 
 # USER INPUTS...
-# $ firefly.py input_spec1d/ input_spec2d/ -all                vvds_spiral vvds_elliptical
-# $ firefly.py input_spec1d/ input_spec2d/ spec1d.m.030.A.fits vvds_spiral vvds_elliptical 0.68 0.67
+# $ python firefly.py input_spec1d/ input_spec2d/ output_JPGs/ -all sdss_luminous_red sdss_late_type
+# $ python firefly.py input_spec1d/ input_spec2d/ output_JPGs/ spec1d.m.030.A.fits sdss_luminous_red sdss_late_type 0.68 0.67
 inputlist = sys.argv
 
 if len(inputlist) > 1:
     spec1dfolderpath = inputlist[1]
     spec2dfolderpath = inputlist[2]
-    spec1dobjnames   = inputlist[3]
-    templatename1    = inputlist[4]
-    templatename2    = inputlist[5]
+    outputfolderpath = inputlist[3]
+    spec1dobjnames   = inputlist[4]
+    templatename1    = inputlist[5]
+    templatename2    = inputlist[6]
     # check illegal inputs
     if spec1dfolderpath[-1] != '/':
         spec1dfolderpath += '/'
-        print('Spec1d Folder:   ', spec1dfolderpath, 'is specified.')
+    print('Spec1d Folder:   ', spec1dfolderpath, 'is specified.')
     if spec2dfolderpath[-1] != '/':
         spec2dfolderpath += '/'
-        print('Spec2d Folder:   ', spec2dfolderpath, 'is specified.')
+    print('Spec2d Folder:   ', spec2dfolderpath, 'is specified.')
+    if outputfolderpath[-1] != '/':
+        outputfolderpath += '/'
+    print('Output Folder:   ', outputfolderpath, 'is specified.')
     #
     if spec1dobjnames == '-all':
         input_spec1d_lst = []
@@ -53,8 +55,8 @@ if len(inputlist) > 1:
         print('File selected:   ', len(input_spec1d_lst), 'files in this spec1d folder.')
     else:
         input_spec1d_lst = [spec1dfolderpath + spec1dobjnames]
-        z_guess1 = float(inputlist[5])
-        z_guess2 = float(inputlist[6])
+        z_guess1 = float(inputlist[7])
+        z_guess2 = float(inputlist[8])
         print('File selected:   ', input_spec1d_lst, '(only 1 file).',
               'You set z='+"{:.4f} {:.4f}".format(z_guess1,z_guess2),'for this object')
     #
@@ -116,10 +118,6 @@ def main_func(input_spec1d_lst, spec1dfolderpath, spec2dfolderpath,
         
         # **observed** spectrum --------------------------------------------------------------
         arr_obs_wave, arr_obs_flux, arr_obs_erro = read_spec1d(spec1dfilepath, binfactor_spec)
-        
-        arr_obs_flux_raw = arr_obs_flux.copy()
-        arr_obs_wave_raw = arr_obs_wave.copy()
-        arr_obs_erro_raw = arr_obs_erro.copy()
         
         wave_min, wave_max = np.min(arr_obs_wave), np.max(arr_obs_wave)
         wave_range         = wave_max - wave_min
