@@ -46,7 +46,8 @@ if len(inputlist) > 1:
     print('Spec2d Folder:   ', spec2dfolderpath, 'is specified.')
     if outputfolderpath[-1] != '/':
         outputfolderpath += '/'
-    print('Output Folder:   ', outputfolderpath, 'is specified.')
+    os.mkdir(outputfolderpath)
+    print('Output Folder:   ', outputfolderpath, 'is created.')
     #
     if spec1dobjnames == '-all':
         input_spec1d_lst = []
