@@ -1,3 +1,6 @@
+.. image:: img/logo.png
+   :width: 60
+
 **Fast Initial REdshift Fitting of cLuster galaxY (FIREFLY)**
 ####################################################################################
 
